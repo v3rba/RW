@@ -1,48 +1,28 @@
 class Player
 
-  FULL_HEALTH = 20
-
   def play_turn(warrior)
-    @warrior = warrior
-    
-    if need_to_rest?
-      if able_to_rest?
-        warrior.rest!
+    if @ok
+      if warrior.feel.enemy?
+        warrior.attack!
+        @attack=true # kill a monster
       else
-        warrior.walk!(:backward)
+        if @attack and !@fullHP and !(warrior.feel:backward).wall?
+          warrior.walk!:backward # back to left to rest
+        elsif (warrior.feel:backward).wall? and warrior.health <20
+          warrior.rest!
+          @fullHP = true
+        else
+          warrior.walk!
+        end
       end
     else
-      if warrior.feel.captive?
-        warrior.rescue!
-      elsif warrior.feel.empty?
-        warrior.walk!
+      if (warrior.feel:backward).captive?
+        warrior.rescue!:backward
+        @ok = true
       else
-        warrior.attack!
-      end
-    end    
-
-    @previous_health = current_health
+        warrior.walk!:backward
+      end 
+    end
   end
   
-  def need_to_rest?
-    resting_not_completed_yet || current_health < 10
-  end
-  
-  def resting_not_completed_yet
-    current_health < FULL_HEALTH && current_health > @previous_health
-  end
-  
-  def able_to_rest?
-    @warrior.feel.empty? and not taken_damage?
-  end
-  
-  def taken_damage?
-    return false if @previous_health.nil?
-    @previous_health > current_health
-  end
-  
-  def current_health
-    @warrior.health
-  end
-
 end
